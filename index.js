@@ -1,7 +1,16 @@
 const express  = require("express");
+const connectDb = require("./configs/db");
+const userRouter = require("./routes/user.route")
 const app = express();
 const port = 8080;
 app.use(express.json())// it will attach body in request object
-app.listen(port,()=>{
-    console.log(`Your application is running at ${port}`);
+app.use("/api/v1/ecommerce",userRouter)
+app.listen(port,async ()=>{
+    try {
+        console.log(`Your application is running at ${port}`);
+        await connectDb();
+    } catch (error) {
+        console.log(error.message);
+    }
+    
 });
