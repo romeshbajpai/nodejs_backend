@@ -1,0 +1,16 @@
+1. npm init -y 
+   ===> (it will create package.json)
+
+2. Install all the required dependencies
+   (2.1) npm i express 
+   (2.2) npm i mongoose
+   (2.3) npm i -g nodemon 
+>> after Installing any single dependency it will create package-lock.json file and node_module
+
+3. after all this we will add a command in package.json file inside script tag we will add this 
+ >>   "scripts": {
+                   "start": "nodemon index.js"
+                 },
+
+4. create index.js file at root level                
+
