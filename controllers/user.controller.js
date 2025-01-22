@@ -1,11 +1,20 @@
 const UserModel = require("../models/user.model")
 
-const addUser = async (req , res)=>{
+const register = async (req, res) => {
+    console.log("test");
     try {
-        const user = await UserModel.create(req.body);
-        return res.status(201).json({status:"success",message:"user added successfully!",user})
+        const { email } = req.body;
+        const checkWithEmail = await UserModel.findOne({ email: email });
+        if (checkWithEmail) {
+            return res.status(409).send({ success: false, message: `User with ${email} already exists` });
+        }
+        const user = await UserModel.create({ viewPassword: req.body.password, ...req.body });
+        if (!user) {
+            return res.status(400).send({ success: false, message: `Unable to create user` }); 
+        }
+        return res.status(201).send({ success: true, message: `User created successfully`,user }); 
     } catch (error) {
-        return res.status(500).json({status:"fail",error : error.message});
+        return res.status(500).send({ success: false, error: error.message });   
     }
 }
-module.exports = {addUser}
+module.exports = {register}
