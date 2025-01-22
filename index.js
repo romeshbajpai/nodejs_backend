@@ -7,8 +7,9 @@ app.use(express.json())// it will attach body in request object
 app.use("/api/v1/ecommerce",userRouter)
 app.listen(port,async ()=>{
     try {
-        console.log(`Your application is running at ${port}`);
         await connectDb();
+        console.log(`Your application is running at ${port}`);
+        
     } catch (error) {
         console.log(error.message);
     }

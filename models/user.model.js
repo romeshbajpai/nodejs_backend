@@ -46,8 +46,11 @@ const userSchema = new mongoose.Schema({
             message: "Confirm password must match the password.",
         },
     },
-    gender: { type: String,required: true, enum: ["male", "female", "other"], message: "Gender must be 'male', 'female', or 'other'.",},
-
+    gender: { 
+        type: String,required: true, enum: ["male", "female", "other"], 
+        message: "Gender must be 'male', 'female', or 'other'.",},
+    status: { type: Boolean, required: true, default: true,},
+    type:{ type: Number, require: true }
 },{
     versionKey:false,
     timestamps :true

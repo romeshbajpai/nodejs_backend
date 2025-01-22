@@ -109,6 +109,44 @@ const registerValidation = [
     .withMessage("Gender is required!")
     .isIn(["male", "female", "other"])
     .withMessage("Invalid gender selected!"),
+    check("type")
+    .not()
+    .isEmpty()
+    .withMessage("Type is required!")
+    .isNumeric()
+    .withMessage("Type must be a number"),
+    function (req,res,next) {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).send({
+                message: "Something went wrong",
+                status: "fail",
+                error: errors.array()
+            });
+        }
+        next();
+    }
+
+
+]
+
+
+const loginValidation = [
+    check("email")
+    .not()
+    .isEmpty()
+    .withMessage("Email is required!")
+    .isEmail()
+    .withMessage("Please provide a valid email address!")
+    .isLength({ max: 50 })
+    .withMessage("Email must not exceed 50 characters!"),
+
+    check("password")
+    .not()
+    .isEmpty()
+    .withMessage("Password is required!")
+    .trim(),
+    
     function (req,res,next) {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -122,4 +160,4 @@ const registerValidation = [
     }
 
 ]
-module.exports = {registerValidation}
+module.exports = {registerValidation, loginValidation}
