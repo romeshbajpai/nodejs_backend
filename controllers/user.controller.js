@@ -92,10 +92,16 @@ const updateUser = async (req, res) => {
             { new: true, runValidators: true });
 
         if(!updatedUser) {
-            return res.status(400).send({ success: false, message: `User could not be updated successfully`,user }); 
+            return res.status(400).send({ success: false, message: `User could not be updated.`,user }); 
         }   
             
-        return res.status(200).send({ success: true, message: `User updated successfully`, updatedUser }); 
+           // Remove sensitive fields from the user object
+           const userData = updatedUser.toObject(); // Convert Mongoose document to plain JavaScript object
+           delete userData.password;
+           delete userData.confirm_password;
+   
+           return res.status(200).send({ success: true, message: `User updated successfully!`, user: userData });
+           
 
 
     } catch (error){
@@ -109,7 +115,7 @@ const getAllUser =  async (req, res) => {
         const userlist = await UserModel.find({ status: true});
 
         if(!userlist) {
-            return res.status(400).send({ success: false, message: `User list not found`,user }); 
+            return res.status(400).send({ success: false, message: `User list not found` }); 
         }
 
         return res.status(200).send({ success: true, message: `User list`, userlist }); 
@@ -119,4 +125,34 @@ const getAllUser =  async (req, res) => {
     }
 }
 
-module.exports = {register, login, updateUser,getAllUser}
+const getUser = async (req, res) => {
+    try {
+        const id  = req.params.id;
+        let objectId;
+        try {
+               objectId = new mongoose.Types.ObjectId(id);
+
+       } catch (error) {
+               return res.status(400).send({ success: false, message: 'Invalid User ID format' });
+       }
+
+        const user = await UserModel.findOne({ _id: objectId});
+
+        if(!user) {
+            return res.status(400).send({ success: false, message: `User not found` }); 
+        }
+
+         // Remove sensitive fields from the user object
+         const userData = user.toObject(); // Convert Mongoose document to plain JavaScript object
+         delete userData.password;
+         delete userData.confirm_password;
+ 
+         return res.status(200).send({ success: true, message: `User details`, user: userData });
+ 
+
+    } catch (error) {
+        return res.status(500).send({ success: false, error: error.message });  
+    }
+}
+
+module.exports = {register, login, updateUser,getAllUser, getUser}

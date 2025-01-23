@@ -1,5 +1,5 @@
 const express = require("express");
-const { register, login, updateUser, getAllUser } = require("../controllers/user.controller");
+const { register, login, updateUser, getAllUser , getUser} = require("../controllers/user.controller");
 const { registerValidation , loginValidation, updateUserValidation } = require("../validations/users.validation");
 
 
@@ -16,9 +16,9 @@ userRouter.route("/login-admin").post(loginValidation,login);
 
 userRouter.route("/user-update/:id").post(updateUserValidation, updateUser);
 userRouter.route("/user-status-change/:id").post(updateUserValidation, updateUser);
-userRouter.route("/user-delete/:id").post(registerValidation, register);
+// userRouter.route("/user-delete/:id").post(registerValidation, register);
 userRouter.route("/user-list").get(getAllUser);
-userRouter.route("/user-details/:id").post(registerValidation, register);
+userRouter.route("/user-details/:id").post( getUser);
 userRouter.route("/user-profile-update/:id").post(registerValidation, register);
 
 
