@@ -92,7 +92,7 @@ const updateUser = async (req, res) => {
             { new: true, runValidators: true });
 
         if(!updatedUser) {
-            return res.status(400).send({ success: false, message: `User could not be updated.`,user }); 
+            return res.status(400).send({ success: false, message: `User could not be updated.`, user }); 
         }   
             
            // Remove sensitive fields from the user object
