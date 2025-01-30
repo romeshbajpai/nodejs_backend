@@ -14,12 +14,12 @@ userRouter.route("/login-admin").post(loginValidation,login);
 
 /**USER CRUD */
 
-userRouter.route("/user-update/:id").post(authMiddleware,updateUserValidation, updateUser);
-userRouter.route("/user-status-change/:id").post(authMiddleware,updateUserValidation, updateUser);
+userRouter.route("/user-update/:id").post(authMiddleware, updateUserValidation, updateUser);
+userRouter.route("/user-status-change/:id").post(authMiddleware, updateUserValidation, updateUser);
 // userRouter.route("/user-delete/:id").post(registerValidation, register);
-userRouter.route("/user-list").get(authMiddleware,getAllUser);
+userRouter.route("/user-list").get(authMiddleware, getAllUser);
 userRouter.route("/user-details/:id").post(authMiddleware, getUser);
-userRouter.route("/user-profile-update/:id").post(authMiddleware,registerValidation, register);
+userRouter.route("/user-profile-update/:id").post(authMiddleware, registerValidation, register);
 
 
 module.exports = userRouter;
