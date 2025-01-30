@@ -1,7 +1,7 @@
 const express = require("express");
 const { register, login, updateUser, getAllUser , getUser} = require("../controllers/user.controller");
 const { registerValidation , loginValidation, updateUserValidation } = require("../validations/users.validation");
-
+const authMiddleware = require("../middleware/auth");
 
 const userRouter = express.Router();
 
@@ -14,12 +14,12 @@ userRouter.route("/login-admin").post(loginValidation,login);
 
 /**USER CRUD */
 
-userRouter.route("/user-update/:id").post(updateUserValidation, updateUser);
-userRouter.route("/user-status-change/:id").post(updateUserValidation, updateUser);
+userRouter.route("/user-update/:id").post(authMiddleware,updateUserValidation, updateUser);
+userRouter.route("/user-status-change/:id").post(authMiddleware,updateUserValidation, updateUser);
 // userRouter.route("/user-delete/:id").post(registerValidation, register);
-userRouter.route("/user-list").get(getAllUser);
-userRouter.route("/user-details/:id").post( getUser);
-userRouter.route("/user-profile-update/:id").post(registerValidation, register);
+userRouter.route("/user-list").get(authMiddleware,getAllUser);
+userRouter.route("/user-details/:id").post(authMiddleware, getUser);
+userRouter.route("/user-profile-update/:id").post(authMiddleware,registerValidation, register);
 
 
 module.exports = userRouter;
