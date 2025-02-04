@@ -59,8 +59,33 @@ const login = async (req, res) => {
         }
 
 
-        const token = jwt.sign({user}, process.env.SECRET_KEY)
-        return res.status(201).send({ success: true, message: 'Login successfull.', token, user });
+        
+        const accessToken = jwt.sign(
+            { userId: user._id, email: user.email, role: user.type },
+            process.env.SECRET_KEY,
+        );
+
+        // const refreshToken = jwt.sign(
+        //     { userId: user._id },
+        //     process.env.REFRESH_SECRET_KEY,
+        //     { expiresIn: '4d' } // Long-lived token
+        // );
+
+        // user.refreshToken = refreshToken;
+
+        await user.save();
+
+        return res.status(200).send({ 
+            success: true, 
+            message: 'Login successful.', 
+            accessToken, 
+            // refreshToken 
+        });
+
+
+
+        // const token = jwt.sign({user}, process.env.SECRET_KEY)
+        // return res.status(201).send({ success: true, message: 'Login successfull.', token, user });
 
     } catch (error) {
         return res.status(500).send({ success: false, error: error.message });   
@@ -155,4 +180,52 @@ const getUser = async (req, res) => {
     }
 }
 
-module.exports = {register, login, updateUser,getAllUser, getUser}
+const logout = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const user = await UserModel.findById(userId);
+        if (!user) {
+            return res.status(404).send({ success: false, message: 'User not found.' });
+        }
+
+        user.refreshToken = null; // Invalidate the refresh token
+        await user.save();
+
+        return res.status(200).send({ success: true, message: 'Logged out successfully.' });
+    } catch (error) {
+        return res.status(500).send({ success: false, error: error.message });
+    }
+};
+
+const refreshAccessToken = async (req, res) => {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+        return res.status(403).send({ success: false, message: 'Refresh token is required.' });
+    }
+
+    try {
+        // Verify refresh token
+        const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY);
+
+        // Find user in the database
+        const user = await UserModel.findById(decoded.userId);
+        if (!user || user.refreshToken !== refreshToken) {
+            return res.status(403).send({ success: false, message: 'Invalid refresh token.' });
+        }
+
+        // Generate a new access token
+        const accessToken = jwt.sign(
+            { userId: user._id, email: user.email, role: user.type },
+            process.env.SECRET_KEY,
+            { expiresIn: '15m' } // Short-lived token
+        );
+
+        return res.status(200).send({ success: true, accessToken });
+
+    } catch (error) {
+        return res.status(403).send({ success: false, message: 'Invalid refresh token.' });
+    }
+};
+
+
+module.exports = {register, login, updateUser, getAllUser, getUser, logout, refreshAccessToken}
