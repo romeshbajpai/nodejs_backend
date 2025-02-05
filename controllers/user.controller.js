@@ -22,8 +22,7 @@ const register = async (req, res) => {
 }
 
 const login = async (req, res) => {
-    try {
-
+    try { 
         const { email, password} = req.body
         if(!email || email == "" || !password || password == ""){
             return res.status(402).send({ success: false, message: "Please enter email and password." });   
@@ -73,7 +72,7 @@ const login = async (req, res) => {
 
         // user.refreshToken = refreshToken;
 
-        await user.save();
+        // await user.save();
 
         return res.status(200).send({ 
             success: true, 
@@ -88,7 +87,7 @@ const login = async (req, res) => {
         // return res.status(201).send({ success: true, message: 'Login successfull.', token, user });
 
     } catch (error) {
-        return res.status(500).send({ success: false, error: error.message });   
+        return res.status(500).send({ success: false, error: `Hi ${error.message}` });   
     }
 }
 
@@ -100,7 +99,6 @@ const updateUser = async (req, res) => {
         const updateData = req.body;
         try {
                objectId = new mongoose.Types.ObjectId(id);
-               console.log("objectId: ", objectId)
 
        } catch (error) {
                return res.status(400).send({ success: false, message: 'Invalid User ID format' });

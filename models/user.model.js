@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema({
         },
     },
     password: {
-        type: String, required: true,minlength: 8, maxlength: 20,
+        type: String, required: true,minlength: 8, maxlength: 200,
         validate: {
             validator: function (value) {
                 return /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*\W).{8,20}$/.test(value);

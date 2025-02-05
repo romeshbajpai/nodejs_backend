@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
 const authMiddleware = (req, res, next) => {
+   
     const token = req.header("Authorization"); // Frontend se token aayega
 
     if (!token) {
@@ -8,10 +9,22 @@ const authMiddleware = (req, res, next) => {
     }
 
     try {
-        const secretKey = process.env.SECRET_KEY; // Isko .env file me store karo
+        const id  = req.params.id;
+        if(!id) {
+            return res.status(401).send({ success: false, message: 'No Id found!' });
+        }
+
+        const secretKey = process.env.SECRET_KEY; 
         const decoded = jwt.verify(token.replace("Bearer ", ""), secretKey);
-        req.user = decoded; // User ki details request me attach kar do
-        next(); // Next middleware ko call karo (API execute hogi)
+    
+        if(id == decoded?.userId ){
+         req.user = decoded; 
+        } else {
+         return res.status(401).send({ success: false, message: 'Authentication error!! Invalid token.' });
+        }
+                   
+        next();
+       
     } catch (error) {
         res.status(401).json({ message: "Invalid Token" });
     }

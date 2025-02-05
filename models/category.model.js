@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const catgeorySchema = mongoose.schema({
+const catgeorySchema = new mongoose.Schema({
     category_name: {type: String, required: true,trim: true,},
     category_description: {type: String, required: true,trim: true,},
     code: {type: String, required: true,trim: true,},
