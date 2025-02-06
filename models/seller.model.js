@@ -1,17 +1,10 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
-const userSchema = new mongoose.Schema({
-    full_name: { type: String, required: true,trim: true,},
-    user_name: { type: String,required: true,trim: true, unique: true,},
-    dob: { type: Date, required: true,
-        validate: {
-            validator: function (value) {
-                const today = new Date();
-                return value < today; // Date of birth must be in the past
-            },
-            message: "Date of birth must be a valid past date.",
-        },
-    },
+
+const sellerSchema = new mongoose.Schema({
+    brand_name: { type: String, required: true,trim: true,},
+    seller_name: { type: String,required: true,trim: true, unique: true,},
+ 
     email: {type: String, required: true,unique: true,trim: true,
         validate: {
             validator: function (value) {
@@ -46,9 +39,7 @@ const userSchema = new mongoose.Schema({
             message: "Confirm password must match the password.",
         },
     },
-    gender: { 
-        type: String,required: true, enum: ["male", "female", "other"], 
-        message: "Gender must be 'male', 'female', or 'other'.",},
+
     status: { type: Boolean, required: true, default: true,},
     type:{ type: Number, require: true },
 },{
@@ -57,12 +48,12 @@ const userSchema = new mongoose.Schema({
 });
 
 
-userSchema.pre("save", async function (next) {
+sellerSchema.pre("save", async function (next) {
     const hash = bcrypt.hashSync(this.password, 10);
     this.password = hash;
     delete this.confirm_password
     next();
 });
 
-const UserModel = new mongoose.model("users",userSchema);
-module.exports = UserModel;
+const sellerModel = new mongoose.model("sellers",sellerSchema);
+module.exports = sellerModel;

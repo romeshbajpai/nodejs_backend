@@ -1,4 +1,4 @@
-const UserModel = require("../models/user.model")
+const sellerModel= require("../models/seller.model")
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
@@ -6,17 +6,18 @@ const mongoose = require('mongoose');
 
 const register = async (req, res) => {
     try {
-        const { email } = req.body;
-        const checkWithEmail = await UserModel.findOne({ email: email });
+        const { email, brandname } = req.body;
+        const checkWithEmail = await sellerModel.findOne({ email: email, brandname: brandname });
         if (checkWithEmail) {
-            return res.status(409).send({ success: false, message: `User with ${email} already exists` });
-        }
-        const user = await UserModel.create({ viewPassword: req.body.password, ...req.body });
-        if (!user) {
-            return res.status(400).send({ success: false, message: `Unable to create user` }); 
+            return res.status(409).send({ success: false, message: `User with ${email} or ${brandname} already exists` });
         }
 
-        return res.status(201).send({ success: true, message: `User created successfully`,user }); 
+        const seller = await sellerModel.create({ viewPassword: req.body.password, ...req.body });
+        if (!seller) {
+            return res.status(400).send({ success: false, message: `Unable to create seller` }); 
+        }
+
+        return res.status(201).send({ success: true, message: `Seller created successfully`,seller }); 
     } catch (error) {
         return res.status(500).send({ success: false, error: error.message });   
     }
@@ -29,39 +30,26 @@ const login = async (req, res) => {
             return res.status(402).send({ success: false, message: "Please enter email and password." });   
         } 
 
-        const user = await UserModel.findOne({ email: email });
-        if(!user){
-            return res.status(200).send({ success: false, message: `No user id found with ${user}` });   
+        const seller = await sellerModel.findOne({ email: email });
+        if(!seller){
+            return res.status(200).send({ success: false, message: `No seller id found with ${seller}` });   
         }
 
-        const match =  bcrypt.compare(password, user.password)
+        const match =  bcrypt.compare(password, seller.password)
         if(!match) {
             return res.status(401).send({ success: false, message: "Invalid password." });    
         }
 
-        if(req.url == "/login-user" ){
-            if (user.type != 1) {
-                return res.status(401).send({ success: false, message: `No user id found with ${user.email}` });   
-            }
-        }
-
-        
         if(req.url == "/login-seller" ){
-            if (user.type != 2) {
-                return res.status(401).send({ success: false, message: `No seller id found with ${user.email}` });   
-            }
-        }
-
-        if(req.url == "/login-admin" ){
-            if (user.type != 0) {
-                return res.status(401).send({ success: false, message: `No admin id found with ${user.email}` });   
+            if (seller.type != 1) {
+                return res.status(401).send({ success: false, message: `No seller id found with ${seller.email}` });   
             }
         }
 
 
         
         const accessToken = jwt.sign(
-            { id: user._id, email: user.email, role: user.type },
+            { id: seller._id, email: seller.email, role: seller.type },
             process.env.SECRET_KEY,
         );
 
@@ -92,7 +80,7 @@ const login = async (req, res) => {
     }
 }
 
-const updateUser = async (req, res) => {
+const updateSeller = async (req, res) => {
 
     try {
         const id  = req.params.id;
@@ -102,29 +90,29 @@ const updateUser = async (req, res) => {
                objectId = new mongoose.Types.ObjectId(id);
 
        } catch (error) {
-               return res.status(400).send({ success: false, message: 'Invalid User ID format' });
+               return res.status(400).send({ success: false, message: 'Invalid Seller ID format' });
        }
 
-        const user = await UserModel.findById({ _id: objectId});
-        if(!user) {
-            return res.status(404).send({ success: false, message: `User not found.` }); 
+        const seller = await sellerModel.findById({ _id: objectId});
+        if(!seller) {
+            return res.status(404).send({ success: false, message: `Seller not found.` }); 
         }
 
 
-        const updatedUser = await UserModel.findByIdAndUpdate({ _id: objectId}, 
+        const updatedSeller = await sellerModel.findByIdAndUpdate({ _id: objectId}, 
             { $set: updateData }, //$set updates the database entry
             { new: true, runValidators: true });
 
-        if(!updatedUser) {
-            return res.status(400).send({ success: false, message: `User could not be updated.`, user }); 
+        if(!updatedSeller) {
+            return res.status(400).send({ success: false, message: `Seller could not be updated.`, seller }); 
         }   
             
            // Remove sensitive fields from the user object
-           const userData = updatedUser.toObject(); // Convert Mongoose document to plain JavaScript object
-           delete userData.password;
-           delete userData.confirm_password;
+           const sellerData = updatedSeller.toObject(); // Convert Mongoose document to plain JavaScript object
+           delete sellerData.password;
+           delete sellerData.confirm_password;
    
-           return res.status(200).send({ success: true, message: `User updated successfully!`, user: userData });
+           return res.status(200).send({ success: true, message: `Seller updated successfully!`, user: sellerData });
            
 
 
@@ -134,22 +122,22 @@ const updateUser = async (req, res) => {
 
 }
 
-const getAllUser =  async (req, res) => {
+const getAllSeller =  async (req, res) => {
     try {
-        const userlist = await UserModel.find({ status: true});
+        const sellerList = await sellerModel.find({ status: true});
 
-        if(!userlist) {
-            return res.status(400).send({ success: false, message: `User list not found` }); 
+        if(!sellerList) {
+            return res.status(400).send({ success: false, message: `Seller list not found` }); 
         }
 
-        return res.status(200).send({ success: true, message: `User list`, userlist }); 
+        return res.status(200).send({ success: true, message: `Seller list`, sellerList }); 
 
     } catch (error) {
         return res.status(500).send({ success: false, error: error.message });  
     }
 }
 
-const getUser = async (req, res) => {
+const getSeller = async (req, res) => {
     try {
         const id  = req.params.id;
         let objectId;
@@ -157,21 +145,21 @@ const getUser = async (req, res) => {
                objectId = new mongoose.Types.ObjectId(id);
 
        } catch (error) {
-               return res.status(400).send({ success: false, message: 'Invalid User ID format' });
+               return res.status(400).send({ success: false, message: 'Invalid seller ID format' });
        }
 
-        const user = await UserModel.findOne({ _id: objectId});
+        const seller = await sellerModel.findOne({ _id: objectId});
 
-        if(!user) {
-            return res.status(400).send({ success: false, message: `User not found` }); 
+        if(!seller) {
+            return res.status(400).send({ success: false, message: `seller not found` }); 
         }
 
          // Remove sensitive fields from the user object
-         const userData = user.toObject(); // Convert Mongoose document to plain JavaScript object
-         delete userData.password;
-         delete userData.confirm_password;
+         const sellerData = seller.toObject(); // Convert Mongoose document to plain JavaScript object
+         delete sellerData.password;
+         delete sellerData.confirm_password;
  
-         return res.status(200).send({ success: true, message: `User details`, user: userData });
+         return res.status(200).send({ success: true, message: `User details`, seller: sellerData });
  
 
     } catch (error) {
@@ -181,14 +169,15 @@ const getUser = async (req, res) => {
 
 const logout = async (req, res) => {
     try {
-        const { userId } = req.body;
-        const user = await UserModel.findById(userId);
-        if (!user) {
-            return res.status(404).send({ success: false, message: 'User not found.' });
+        const { id } = req.body;
+        const seller = await sellerModel.findById(id);
+
+        if (!seller) {
+            return res.status(404).send({ success: false, message: 'Seller not found.' });
         }
 
-        user.refreshToken = null; // Invalidate the refresh token
-        await user.save();
+        seller.refreshToken = null; // Invalidate the refresh token
+        await seller.save();
 
         return res.status(200).send({ success: true, message: 'Logged out successfully.' });
     } catch (error) {
@@ -227,4 +216,4 @@ const refreshAccessToken = async (req, res) => {
 };
 
 
-module.exports = {register, login, updateUser, getAllUser, getUser, logout, refreshAccessToken}
+module.exports = {register, login, updateSeller, getAllSeller, getSeller, logout, refreshAccessToken}

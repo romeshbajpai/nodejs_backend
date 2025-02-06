@@ -9,7 +9,7 @@ const userRouter = express.Router();
 userRouter.route("/register").post(registerValidation,register);
 
 userRouter.route("/login-user").post(loginValidation,login);
-userRouter.route("/login-seller").post(loginValidation,login);
+// userRouter.route("/login-seller").post(loginValidation,login);
 userRouter.route("/login-admin").post(loginValidation,login);
 
 /**USER CRUD */

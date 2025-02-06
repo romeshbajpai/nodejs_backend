@@ -9,20 +9,9 @@ const authMiddleware = (req, res, next) => {
     }
 
     try {
-        const id  = req.params.id;
-        if(!id) {
-            return res.status(401).send({ success: false, message: 'No Id found!' });
-        }
-
         const secretKey = process.env.SECRET_KEY; 
         const decoded = jwt.verify(token.replace("Bearer ", ""), secretKey);
-    
-        if(id == decoded?.userId ){
-         req.user = decoded; 
-        } else {
-         return res.status(401).send({ success: false, message: 'Authentication error!! Invalid token.' });
-        }
-                   
+        req.user = decoded; //attaching user data to the request    
         next();
        
     } catch (error) {
@@ -30,4 +19,23 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
-module.exports = authMiddleware;
+const sellerAuthMiddleware = (req, res, next) => {
+   
+    const token = req.header("Authorization"); // Frontend se token aayega
+
+    if (!token) {
+        return res.status(401).json({ message: "Access Denied! No Token Provided." });
+    }
+
+    try {
+        const secretKey = process.env.SECRET_KEY; 
+        const decoded = jwt.verify(token.replace("Bearer ", ""), secretKey);
+        req.user = decoded; //attaching user data to the request    
+        next();
+       
+    } catch (error) {
+        res.status(401).json({ message: "Invalid Token" });
+    }
+};
+
+module.exports = authMiddleware, sellerAuthMiddleware;

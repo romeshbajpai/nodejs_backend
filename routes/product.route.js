@@ -1,11 +1,11 @@
 const express = require("express");
-const { UpdateProduct, getAllProduct, getProduct, deleteProduct } = require('../controllers/product.controller')
+const { UpdateProduct, getAllProduct, getProduct, createProduct, deleteProduct } = require('../controllers/product.controller')
 
 const productRouter = express.Router();
 const authMiddleware = require("../middleware/auth");
 
 /**Product CRUD */
-
+productRouter.route("/product-create").post(authMiddleware,  createProduct);
 productRouter.route("/product-update/:id").post(authMiddleware,  UpdateProduct);
 productRouter.route("/product-status-change/:id").post(authMiddleware,  UpdateProduct);
 productRouter.route("/product-delete/:id").post(authMiddleware, deleteProduct);
