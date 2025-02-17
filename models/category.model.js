@@ -7,7 +7,7 @@ const catgeorySchema = new mongoose.Schema({
     pcid: {type: Array, required: true,trim: true,},
 
     category_name_slug: { type: String, required: true,trim: true,},
-    category_picture: { type: String, required: true,trim: true,},
+    category_picture: { type: String, required: false,trim: true,},
     category_type: { type: Number, required: true,trim: true,},
     category_status: { type: Number, required: true,trim: true,},
 

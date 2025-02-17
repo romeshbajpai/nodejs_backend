@@ -11,7 +11,7 @@ categoryRouter.route("/category-status-change/:id").post(authMiddleware,  Update
 categoryRouter.route("/category-delete/:id").post(authMiddleware, deleteCategory);
 categoryRouter.route("/category-list").get(getAllCategory);
 categoryRouter.route("/category-details/:id").post(getCategory);
-
+categoryRouter.route("/category-create").post(authMiddleware,  UpdateCategory);
 
 
 module.exports = categoryRouter;
