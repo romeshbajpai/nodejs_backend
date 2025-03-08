@@ -15,6 +15,8 @@ const sellerSchema = new mongoose.Schema({
     },
     phone_number: {
         type: String, required: true,
+        unique: true,
+        trim: true,
         validate: {
             validator: function (value) {
                 return /^[6-9]\d{9}$/.test(value); // Validates Indian mobile numbers

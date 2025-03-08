@@ -1,143 +1,118 @@
-const { validationResult, check } = require("express-validator");
 
-const createProductValidation = [
-    check("title")
-    .not()
-    .isEmpty()
-    .withMessage("Title should not be blank!")
-    .exists()
-    .isString()
-    .withMessage("Title should be a string value")
-    .trim(),
+const Joi = require("joi");
 
-    check("description")
-    .not()
-    .isEmpty()
-    .withMessage("Description should not be blank!")
-    .exists()
-    .isString()
-    .withMessage("Description should a be string value!")
-    .trim(),
+const createProductValidation = Joi.object({
+    title: Joi.string()
+    .trim()
+    .required()
+    .messages({
+        "string.empty" : 'Name is required',
+    }),
 
-    check("brand")
-    .not()
-    .isEmpty()
-    .withMessage("Brand should not be blank!")
-    .exists()
-    .isString()
-    .withMessage("Brand should be a string value!")
-    .trim(),
-    
-    check("packageSizeDimention")
-    .not()
-    .isEmpty()
-    .withMessage("packageSizeDimention should not be blank!")
-    .exists()
-    .isNumber()
-    .withMessage("packageSizeDimention should be a number value!")
-    .trim(),
-    
- 
-    check("productSizeDimention")
-    .not()
-    .isEmpty()
-    .withMessage("productSizeDimention should not be blank!")
-    .exists()
-    .isNumber()
-    .withMessage("productSizeDimention should be a number value!")
-    .trim(),
+    description: Joi.string()
+    .trim()
+    .required()
+    .messages({
+        "string.empty" : 'description is required',
+    }),
 
-    
-    check("colour")
-    .not()
-    .isEmpty()
-    .withMessage("colour should not be blank!")
-    .exists()
-    .isNumber()
-    .withMessage("colour should be a number value!")
-    .trim(),
+    brand: Joi.string()
+    .trim()
+    .required()
+    .messages({
+        "string.empty" : 'description is required',
+    }),
 
-    
-    check("price")
-    .not()
-    .isEmpty()
-    .withMessage("price should not be blank!")
-    .exists()
-    .isNumber()
-    .withMessage("price should be a number value!")
-    .trim(),
+    packageSizeDimention: Joi.number()
+    .required()
+    .messages({
+        "string.empty" : 'packageSizeDimention is required',
+    }),
 
-    check("original_price")
-    .isNumber()
-    .withMessage("price should be a number value!")
-    .trim(),
+  
 
-    check("tax")
-    .not()
-    .isEmpty()
-    .withMessage("tax should not be blank!")
-    .exists()
-    .isNumber()
-    .withMessage("tax should be a number value!")
-    .trim(),
+    productSizeDimention: Joi.number()
+    .required()
+    .messages({
+        "string.empty" : 'packageSizeDimention is required',
+    }),
 
-    check("tags")
-    .not()
-    .isEmpty()
-    .withMessage("tags should not be blank!")
-    .exists()
-    .isArray()
-    .withMessage("tags should be a array!")
+    colour: Joi.number()
+    .required()
+    .messages({
+        "string.empty" : 'colour is required',
+    }),
+
+
+    price: Joi.number()
+    .required()
+    .messages({
+        "string.empty" : 'price is required',
+    }),
+
+    original_price: Joi.number(),
+
+
+    tax: Joi.number()
+    .required()
+    .messages({
+        "string.empty" : 'tax is required',
+    }),
+
+
+    tags: Joi.array()
+    .required()
+    .messages({
+        "string.empty" : 'tags are required',
+    }),
+
+
+    category1: Joi.string()
+    .trim()
+    .required()
+    .messages({
+        "string.empty" : 'category1 is required',
+    }),
+
+    category2: Joi.string()
+    .trim()
+    .required()
+    .messages({
+        "string.empty" : 'category2 is required',
+    }),
+
+    category3: Joi.string()
     .trim(),
 
-    check("category1")
-    .not()
-    .isEmpty()
-    .withMessage("category1 should not be blank!")
-    .exists()
-    .isNumber()
-    .withMessage("category1 should be a number value!")
+    category4: Joi.string()
     .trim(),
 
-    check("category2")
-    .not()
-    .isEmpty()
-    .withMessage("category2 should not be blank!")
-    .exists()
-    .isNumber()
-    .withMessage("category2 should be a number value!")
-    .trim(),
 
-    check("sku")
-    .not()
-    .isEmpty()
-    .withMessage("sku should not be blank!")
-    .exists()
-    .isString()
-    .withMessage("sku should be a number value!")
-    .trim(),
+    sku: Joi.string()
+    .trim()
+    .required()
+    .messages({
+        "string.empty" : 'sku is required',
+    }),
 
-    check("status")
-    .not()
-    .isEmpty()
-    .withMessage("status should not be blank!")
-    .exists()
-    .isNumber()
-    .withMessage("status should be a number value!")
-    .trim(),
+    isfeature: Joi.boolean(),
 
-    function (req,res,next) {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).send({
-                message: "Something went wrong",
-                status: "fail",
-                error: errors.array()
-            });
-        }
-        next();
+    status: Joi.number(),
+
+
+})
+
+const ValidateCreate = (req,res,next) => {
+    const { error } = createProductValidation.validate(req.body, { abortEarly: false });
+    if (error) {
+        return res.status(400).json({ message: "Validation failed", errors: error.details });
     }
+    next();
+}
+
+   
+module.exports = {ValidateCreate}
 
 
-]
+
 

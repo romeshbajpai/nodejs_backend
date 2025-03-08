@@ -13,14 +13,14 @@ const productSchema = new mongoose.Schema({
     tax: {type: Number, required: true, trim: true,},
     tags: {type: [String], required: true,trim: true,},
     isfeature: {type: Boolean, required: false, trim: true, default: 1,},
-    category1: { type: Number, required: true, trim: true,},
-    category2: { type: Number, required: true, trim: true,},
-    category3: { type: Number, required: false, trim: true,},
-    category4: { type: Number, required: false, trim: true,},
+    category1: {  type: mongoose.Schema.Types.ObjectId, ref: "category",  required: true, trim: true,},
+    category2: {  type: mongoose.Schema.Types.ObjectId, ref: "category", required: true, trim: true,},
+    category3: { type: String, required: false, trim: true,},
+    category4: { type: String, required: false, trim: true,},
     sku: { type: String, required: false, trim: true,},
-  
+    stock: {type: Number, required: false, trim: true},
     status: { type: Number, required: true, default: 1,}, /** 0 inactive, 1 active, 1 sold out */
-    sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "user", required: true },
+    sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "sellers", required: true },
 },{
     versionKey:false,
     timestamps :true

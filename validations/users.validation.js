@@ -1,275 +1,186 @@
-const { validationResult, check } = require("express-validator");
+const Joi = require("joi");
 
-const registerValidation = [
-    check("full_name")
-    .not()
-    .isEmpty()
-    .withMessage("Name should not be blank!")
-    .exists()
-    .isString()
-    .withMessage("Name should be string value")
-    .isLength({min:3, max:30})
-    .withMessage("Name should be between 3 to 30 characters long!")
-    .trim(),
-    check("user_name")
-    .not()
-    .isEmpty()
-    .withMessage("Name should not be blank!")
-    .exists()
-    .isString()
-    .withMessage("Name should be string value")
-    .isLength({min:3, max:30})
-    .withMessage("Name should be between 3 to 30 characters long!")
-    .matches(/[\W_]/)
-    .withMessage("Name should contain at least one special character!")
-    .trim(),
-    check("dob")
-    .not()
-    .isEmpty()
-    .withMessage("Date of birth is required!")
-    .isDate({ format: "YYYY-MM-DD" })
-    .withMessage("Date of birth must be a valid date in YYYY-MM-DD format!")
-    // .custom((value) => {
-    //     const today = new Date();
-    //     const dob = new Date(value);
-    //     const age = today.getFullYear() - dob.getFullYear();
-    //     const m = today.getMonth() - dob.getMonth();
-    //     if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-    //         age--;
-    //     }
-    //     if (age < 18) {
-    //         console.log("1");
-            
-    //         throw new Error("You must be at least 18 years old!");
-    //     }
-    //     if (age > 100) {
-    //         console.log("2");
-    //         throw new Error("Age cannot exceed 100 years!");
-    //     }
-    //     return true;
-    // })
-    // .withMessage("Date of birth must be valid and within the acceptable age range!")
-    .trim(),
-    check("email")
-    .not()
-    .isEmpty()
-    .withMessage("Email is required!")
-    .isEmail()
-    .withMessage("Please provide a valid email address!")
-    .isLength({ max: 50 })
-    .withMessage("Email must not exceed 50 characters!")
-    // .custom((value) => {
-    //     const domain = value.split("@")[1];
-    //     const allowedDomains = ["gmail.com", "yahoo.com", "outlook.com"];
-    //     if (!allowedDomains.includes(domain)) {
-    //         throw new Error("Email domain is not allowed! Please use gmail.com, yahoo.com, or outlook.com.");
-    //     }
-    //     return true;
-    // })
-    // .withMessage("Email domain must be valid!")
-    .trim(),
-    // .normalizeEmail(),
-    check("phone_number")
-    .not()
-    .isEmpty()
-    .withMessage("Phone number is required!")
-    .matches(/^[6-9]\d{9}$/)
-    .withMessage("Phone number must be a valid 10-digit Indian number starting with 6-9!")
-    .isLength({ min: 10, max: 10 })
-    .withMessage("Phone number must be exactly 10 digits long!")
-    .trim(),
-    check("password")
-    .not()
-    .isEmpty()
-    .withMessage("Password is required!")
-    .isLength({ min: 8, max: 20 })
-    .withMessage("Password must be between 8 to 20 characters long!")
-    .matches(/[0-9]/)
-    .withMessage("Password must contain at least one numeric digit!")
-    .matches(/[a-z]/)
-    .withMessage("Password must contain at least one lowercase letter!")
-    .matches(/[A-Z]/)
-    .withMessage("Password must contain at least one uppercase letter!")
-    .matches(/[!@#$%^&*(),.?":{}|<>]/)
-    .withMessage("Password must contain at least one special character!")
-    .trim(),
-    check("confirm_password")
-    .not()
-    .isEmpty()
-    .withMessage("Confirm Password is required!")
-    .custom((value, { req }) => {
-        if (value !== req.body.password) {
-            throw new Error("Confirm Password does not match Password!");
-        }
-        return true;
+const passwordComplexity = (value, helpers) => {
+    if(!/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*\W).{8,20}/.test(value)) {
+        return helpers.message(
+            "Password must be 8-20 characters long, with at least one uppercase letter, one lowercase letter, one number, and one special character."
+        );
+    }
+    return value;
+}
+
+const registerValidation = Joi.object({
+    full_name: Joi.string()
+    .trim()
+    .min(3)
+    .required()
+    .messages({
+        "string.empty" : 'Name is required',
+        "string.min": 'Name cannot be less than 3 letters',
     }),
-    check("gender")
-    .not()
-    .isEmpty()
-    .withMessage("Gender is required!")
-    .isIn(["male", "female", "other"])
-    .withMessage("Invalid gender selected!"),
-    check("type")
-    .not()
-    .isEmpty()
-    .withMessage("Type is required!")
-    .isNumeric()
-    .withMessage("Type must be a number"),
-    function (req,res,next) {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).send({
-                message: "Something went wrong",
-                status: "fail",
-                error: errors.array()
-            });
-        }
-        next();
+
+    user_name: Joi.string()
+    .trim()
+    .min(3)
+    .required()
+    .messages({
+        "string.empty":"Username is required",
+        "string.min": "Username can not be less than 3 letters",
+    }),
+
+    dob: Joi.date()
+    .less("now")
+    .required()
+    .messages({
+        "date.base": "Invalid format",
+        "date.less": "Date of birth must be a valid past date.",
+    }),
+
+    email: Joi.string()
+    .email()
+    .required()
+    .messages({
+        "string.empty": "Email is required.",
+        "string.email": "Please write in a valid email format",
+    }),
+
+    phone_number: Joi.string()
+    .pattern(/^[6-9]\d{9}$/)
+    .required()
+    .messages({
+        "string.empty": "Phone number is required.",
+        "string.pattern": "Invalid phone number format",
+    }),
+
+    password: Joi.string()
+    .custom(passwordComplexity)
+    .required(),
+
+    confirm_password: Joi.string()
+    .valid(Joi.ref("password"))
+    .required()
+    .messages({
+        "any.only": "Confirm password does not match Password"
+    }),
+
+    gender: Joi.string()
+    .required()
+    .valid("male", "female", "others")
+    .messages({
+        "any.only": "Gender must be male, female or others"
+    }),
+
+    type: Joi.number()
+    .required()
+    .messages({
+        "number.base": "Type must be a number.",
+    })
+
+})
+
+const validateRegister = (req, res, next) => {
+    const { error } = registerValidation.validate(req.body, { abortEarly: false });
+    if (error) {
+        return res.status(400).json({ message: "Validation failed", errors: error.details });
     }
+    next();
+};
 
 
-]
+const loginValidation = Joi.object({
+    email: Joi.string()
+    .required()
+    .email()
+    .messages({
+        "string.empty": 'Email is required.',
+        "string.email": "Please use a valid email format",
+    })
+})
 
-
-const loginValidation = [
-    check("email")
-    .not()
-    .isEmpty()
-    .withMessage("Email is required!")
-    .isEmail()
-    .withMessage("Please provide a valid email address!")
-    .isLength({ max: 50 })
-    .withMessage("Email must not exceed 50 characters!"),
-
-    check("password")
-    .not()
-    .isEmpty()
-    .withMessage("Password is required!")
-    .trim(),
-    
-    function (req,res,next) {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).send({
-                message: "Something went wrong",
-                status: "fail",
-                error: errors.array()
-            });
-        }
-        next();
+const validateLogin = (req, res, next) =>{
+    const { error } = loginValidation.validate(req.body, {abortEarly: false});
+    if (error) {
+        return res.status(400).join({message: "Validation failed", errors: error.details})
     }
+    next();
+}
 
-]
+const updateUserValidation = Joi.object({
+    full_name: Joi.string()
+    .trim()
+    .min(3)
+    .required()
+    .messages({
+        "string.empty" : 'Name is required',
+        "string.min": 'Name cannot be less than 3 letters',
+    }),
 
-const updateUserValidation = [
-    check("full_name")
-    .not()
-    .isEmpty()
-    .withMessage("Name should not be blank!")
-    .exists()
-    .isString()
-    .withMessage("Name should be string value")
-    .isLength({min:3, max:30})
-    .withMessage("Name should be between 3 to 30 characters long!")
-    .trim(),
+    user_name: Joi.string()
+    .trim()
+    .min(3)
+    .required()
+    .messages({
+        "string.empty":"Username is required",
+        "string.min": "Username can not be less than 3 letters",
+    }),
 
-    check("user_name")
-    .not()
-    .isEmpty()
-    .withMessage("Name should not be blank!")
-    .exists()
-    .isString()
-    .withMessage("Name should be string value")
-    .isLength({min:3, max:30})
-    .withMessage("Name should be between 3 to 30 characters long!")
-    .matches(/[\W_]/)
-    .withMessage("Name should contain at least one special character!")
-    .trim(),
-    
-    check("dob")
-    .not()
-    .isEmpty()
-    .withMessage("Date of birth is required!")
-    .isDate({ format: "YYYY-MM-DD" })
-    .withMessage("Date of birth must be a valid date in YYYY-MM-DD format!")
-    // .custom((value) => {
-    //     const today = new Date();
-    //     const dob = new Date(value);
-    //     const age = today.getFullYear() - dob.getFullYear();
-    //     const m = today.getMonth() - dob.getMonth();
-    //     if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-    //         age--;
-    //     }
-    //     if (age < 18) {
-    //         console.log("1");
-            
-    //         throw new Error("You must be at least 18 years old!");
-    //     }
-    //     if (age > 100) {
-    //         console.log("2");
-    //         throw new Error("Age cannot exceed 100 years!");
-    //     }
-    //     return true;
-    // })
-    // .withMessage("Date of birth must be valid and within the acceptable age range!")
-    .trim(),
+    dob: Joi.date()
+    .less("now")
+    .required()
+    .messages({
+        "date.base": "Invalid format",
+        "date.less": "Date of birth must be a valid past date.",
+    }),
 
-    check("email")
-    .not()
-    .isEmpty()
-    .withMessage("Email is required!")
-    .isEmail()
-    .withMessage("Please provide a valid email address!")
-    .isLength({ max: 50 })
-    .withMessage("Email must not exceed 50 characters!")
-    // .custom((value) => {
-    //     const domain = value.split("@")[1];
-    //     const allowedDomains = ["gmail.com", "yahoo.com", "outlook.com"];
-    //     if (!allowedDomains.includes(domain)) {
-    //         throw new Error("Email domain is not allowed! Please use gmail.com, yahoo.com, or outlook.com.");
-    //     }
-    //     return true;
-    // })
-    // .withMessage("Email domain must be valid!")
-    .trim(),
-    // .normalizeEmail(),
+    email: Joi.string()
+    .email()
+    .required()
+    .messages({
+        "string.empty": "Email is required.",
+        "string.email": "Please write in a valid email format",
+    }),
 
-    check("phone_number")
-    .not()
-    .isEmpty()
-    .withMessage("Phone number is required!")
-    .matches(/^[6-9]\d{9}$/)
-    .withMessage("Phone number must be a valid 10-digit Indian number starting with 6-9!")
-    .isLength({ min: 10, max: 10 })
-    .withMessage("Phone number must be exactly 10 digits long!")
-    .trim(),
+    phone_number: Joi.string()
+    .pattern(/^[6-9]\d{9}$/)
+    .required()
+    .messages({
+        "string.empty": "Phone number is required.",
+        "string.pattern": "Invalid phone number format",
+    }),
 
-    check("gender")
-    .not()
-    .isEmpty()
-    .withMessage("Gender is required!")
-    .isIn(["male", "female", "other"])
-    .withMessage("Invalid gender selected!"),
+    password: Joi.string()
+    .custom(passwordComplexity)
+    .required(),
 
-    check("type")
-    .not()
-    .isEmpty()
-    .withMessage("Type is required!")
-    .isNumeric()
-    .withMessage("Type must be a number"),
+    confirm_password: Joi.string()
+    .valid(Joi.ref("password"))
+    .required()
+    .messages({
+        "any.only": "Confirm password does not match Password"
+    }),
 
-    function (req,res,next) {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).send({
-                message: "Something went wrong",
-                status: "fail",
-                error: errors.array()
-            });
-        }
-        next();
+    gender: Joi.string()
+    .required()
+    .valid("male", "female", "others")
+    .messages({
+        "any.only": "Gender must be male, female or others"
+    }),
+
+    type: Joi.number()
+    .required()
+    .messages({
+        "number.base": "Type must be a number.",
+    })
+
+})
+
+const validateUpdate = (req, res, next) => {
+    const { error } = updateUserValidation.validate(req.bosy, {abortEarly: false});
+    if (error) {
+        return res.status(400).join({message: "validation failed", errors: error.details})
     }
-]
+    next();
+}
 
-const passwordUpdateValidation = []
-module.exports = {registerValidation, loginValidation, updateUserValidation}
+
+module.exports = {validateRegister, validateLogin, validateUpdate}

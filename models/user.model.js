@@ -22,6 +22,8 @@ const userSchema = new mongoose.Schema({
     },
     phone_number: {
         type: String, required: true,
+        unique: true,
+        trim: true,
         validate: {
             validator: function (value) {
                 return /^[6-9]\d{9}$/.test(value); // Validates Indian mobile numbers
@@ -58,7 +60,7 @@ const userSchema = new mongoose.Schema({
 
 
 userSchema.pre("save", async function (next) {
-    const hash = bcrypt.hashSync(this.password, 10);
+    const hash = await bcrypt.hashSync(this.password, 10);
     this.password = hash;
     delete this.confirm_password
     next();

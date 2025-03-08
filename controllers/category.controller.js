@@ -21,6 +21,10 @@ const createCategory = async (req, res) => {
         const category_name_slug = slugify(category_name);
 
         const existingCategory = await categoryModel.findOne({ category_name_slug });
+
+        //The functions categoryModel.findOne() and newCategory.save() 
+        // return Promises, which are being *awaited* inside the try block
+
         if (existingCategory) {
             return res.status(400).json({ success: false, message: "Category already exists." });
         }
@@ -85,26 +89,25 @@ const createCategory = async (req, res) => {
 
 const UpdateCategory = async (req, res) => {
     try {
-        const { id } = req.params; // ✅ Correct way to extract ID
+        const { id } = req.params;
         const updateData = req.body;
 
-        // ✅ Validate MongoDB ObjectId
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ success: false, message: "Invalid Category ID format" });
         }
 
-        // ✅ Find category before updating
+      
         const category = await categoryModel.findById(id);
         if (!category) {
             return res.status(404).json({ success: false, message: "Category not found." });
         }
 
-        // ✅ Update category
+     
         const updatedCategory = await categoryModel.findByIdAndUpdate(
             id,
             { $set: updateData },
             { new: true, runValidators: true }
-        );
+        ).populate("pcid");
 
         if (!updatedCategory) {
             return res.status(400).json({ success: false, message: "Category could not be updated." });
@@ -149,7 +152,7 @@ const getCategory = async (req, res) => {
                return res.status(400).send({ success: false, message: 'Invalid category ID format' });
        }
 
-        const Category = await categoryModel.findOne({ _id: objectId});
+        const Category = await categoryModel.findOne({ _id: objectId}).populate("pcid");
 
         if(!Category) {
             return res.status(400).send({ success: false, message: `Category not found` }); 

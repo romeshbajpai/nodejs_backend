@@ -6,7 +6,7 @@ const UpdateProduct = async (req, res) => {
         const updateData = req.body;
 
         const product = await ProductModel.findById({ _id: id});
-        console.log(product);
+  
 
         if(!product) {
             return res.status(404).send({ success: false, message: `Product not found.` }); 
@@ -106,16 +106,11 @@ const getAllProduct =  async (req, res) => {
 const getProduct = async (req, res) => {
     try {
         const id  = req.params.id;
-        let objectId;
-        try {
-               objectId = new mongoose.Types.ObjectId(id);
 
-       } catch (error) {
-               return res.status(400).send({ success: false, message: 'Invalid Product ID format' });
-       }
-
-        const product = await ProductModel.findOne({ _id: objectId});
-
+        const product = await ProductModel.findOne({ _id: id})
+        .populate("sellerId")
+        .populate("category1", "category_name category_type")
+        .populate("category2", "category_name category_type")
         if(!product) {
             return res.status(400).send({ success: false, message: `Product not found` }); 
         }

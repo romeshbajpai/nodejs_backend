@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const addressSchema = mongoose.schema({
+    userId:{ type: mongoose.Schema.Types.ObjectId, ref: "user", required: false},
     default: {type: Number, required: false,trim: true,},
     type: { type: Number, required: false, trim: true},
     addressLine1: { type: String, required: true,trim: true,},
